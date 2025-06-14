@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>COVID-19 Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 {
+      background-color: #2f3542;
+      color: white;
+      padding: 20px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .card {
+      background: white;
+      margin: 10px;
+      padding: 20px;
+      width: 250px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+    select {
+      padding: 10px;
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌍 COVID-19 Tracker</h1>
+
+  <select id="countrySelect">
+    <option value="worldwide">Worldwide</option>
+  </select>
+
+  <div class="stats">
+    <div class="card">
+      <h3>🦠 Cases</h3>
+      <p id="cases">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>💀 Deaths</h3>
+      <p id="deaths">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>💪 Recovered</h3>
+      <p id="recovered">Loading...</p>
+    </div>
+  </div>
+
+  <script>
+    const countrySelect = document.getElementById('countrySelect');
+    const casesEl = document.getElementById('cases');
+    const deathsEl = document.getElementById('deaths');
+    const recoveredEl = document.getElementById('recovered');
+
+    async function fetchData(url) {
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    }
+
+    async function loadGlobalData() {
+      const data = await fetchData('https://disease.sh/v3/covid-19/all');
+      updateStats(data);
+    }
+
+    async function loadCountries() {
+      const countries = await fetchData('https://disease.sh/v3/covid-19/countries');
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.country;
+        option.textContent = country.country;
+        countrySelect.appendChild(option);
+      });
+    }
+
+    function updateStats(data) {
+      casesEl.textContent = data.cases.toLocaleString();
+      deathsEl.textContent = data.deaths.toLocaleString();
+      recoveredEl.textContent = data.recovered.toLocaleString();
+    }
+
+    countrySelect.addEventListener('change', async () => {
+      if (countrySelect.value === 'worldwide') {
+        loadGlobalData();
+      } else {
+        const countryData = await fetchData(`https://disease.sh/v3/covid-19/countries/${countrySelect.value}`);
+        updateStats(countryData);
+      }
+    });
+
+    // Load initial data
+    loadGlobalData();
+    loadCountries();
+  </script>
+</body>
+</html>
